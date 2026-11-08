@@ -5,7 +5,14 @@ Generates markdown docs from Python docustrings for publishing to a Github wiki.
 ## Usage
 
 ```sh
-
+>ls example
+example.py
+> ./gengithubwiki.py --verbose --output example/docs/ example/example.py
+Processing example/example.py
+example/example.py ready to write (0.000s)
+Created 2 documents and skipped 0 (0.003s)
+> ls example/docs
+test1.md        test2.md
 ```
 
 ## Limitations
