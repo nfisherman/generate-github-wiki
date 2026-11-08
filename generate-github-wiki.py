@@ -104,7 +104,7 @@ def __parse_file(file: Path) -> list[__Document]:
                             if not (args or returns):
                                 current_function.description += intentional_newline if line == '\n' else line.strip() + " "
                                 continue
-                
+                    
                     split_line: list[str] = stripped_line.split(': ')
                     # assign a key if it hasn't been done already
                     if len(split_line) > 1:
@@ -112,7 +112,7 @@ def __parse_file(file: Path) -> list[__Document]:
                         arg[1] = split_line[1:len(split_line) - 1].join(': ')
                     else:
                         # preserve intentional newlines
-                        if line == '\n':
+                        if re.sub(r'^[^\S\r\n]+|[^\S\r\n]+$', '', line) == '\n':
                             arg[1] += intentional_newline
                         # TODO: preserve multi-level bulleted lists
                         else:
@@ -125,18 +125,7 @@ def __parse_file(file: Path) -> list[__Document]:
                             arg[1] += stripped_line
                 else:
                     # line = re.sub(r'^[^\S\r\n]+|[^\S\r\n]+$', '', line)
-                    if building_class:
-                        current_document.description += intentional_newline if line == '\n' else line.strip() + " "
-                    else:
-                        
-                    continue
-
-                if args:
-
-                    
-
-                elif returns:
-                    pass
+                    current_document.description += intentional_newline if line == '\n' else line.strip() + " "
 
         return True
     
@@ -147,7 +136,7 @@ def __create_file(document: __Document):
 
 parser = argparse.ArgumentParser(
     prog=NAME,
-    description='Generates a random emo username.'
+    description='Convert docustrings to a format Github wiki can understand.'
 )
 parser.add_argument(
     'source',
@@ -159,6 +148,7 @@ parser.add_argument(
     action='store_true',
     help="recursively travel through directories"
 )
+# TODO: add verbose option
 # parser.add_argument(
 #     '-v', '--verbose',
 #     action='store_true',
@@ -171,12 +161,17 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+if args.version:
+    print(f'{NAME} {VERSION}')
+    sys.exit()
+
 if __is_python_file(args.source):
-    __parse_file(args.source)
+    parsed_files = __parse_file(args.source)
+    if parsed_files > 1:
+        documents: list[__Document].add(__parse_file(args.source))
 elif os.path.isdir(args.source):
     for file in (Path(args.source).glob('**/*') if args.recursive else Path(args.source).glob('*')):
-        __parse_file(file)
-
+        documents: list[__Document].add(__parse_file(file))
 else:
     print(f'{NAME}: source is not python file or directory')
     parser.print_usage()
